@@ -12,7 +12,7 @@ head <- train %>% head()
 ```
 
 ```{r}
-
+library(lubridate)
 dt_from_unix <- function(vec) {
   as.POSIXct(vec, origin = "1970-01-01")
 }
@@ -61,4 +61,14 @@ temp <- head %>%
   pre_process()
 ```
 
+Ok, it works :-). Lets pre-process the whole dataset.
+
+```{r}
+train %<>%
+  pre_process()
+```
+
+```{r}
+ggplot()
+```
 
