@@ -1,0 +1,64 @@
+---
+title: "Untitled"
+author: "Lorenz Walthert"
+date: "5/19/2018"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+train <- read_tsv(here::here("competition/01-data/train.csv"))
+head <- train %>% head()
+```
+
+```{r}
+
+dt_from_unix <- function(vec) {
+  as.POSIXct(vec, origin = "1970-01-01")
+}
+
+
+remove_cols <- function(data) {
+  data %>%
+    select(-.data$question_utc, -.data$answer_utc)
+}
+convert_time <- function(data) {
+    data %>%
+    mutate(
+      question_dt = dt_from_unix(question_utc),
+      answer_dt = dt_from_unix(answer_utc)
+    ) %>%
+    mutate(
+      question_day = day(question_dt),
+      answer_day = day(answer_dt),
+      question_hour = hour(question_dt),
+      answer_hour = hour(answer_dt),
+      weekday_question = weekdays.Date(question_dt),
+      weekday_answer = weekdays.Date(answer_dt)
+    )
+}
+
+reorder_cols <- function(data) {
+  question <- grep("question", names(data), value = TRUE)
+  answer <- grep("answer", names(data), value = TRUE)
+  important <- c("subreddit", "question_score", "answer_score")
+  rest <- setdiff(names(data), c(question, answer, important))
+  
+  data[, unique(c(important, question, answer, rest))]
+}
+
+pre_process <- function(data) {
+  data %>%
+    convert_time() %>%
+    reorder_cols() %>%
+    remove_cols()
+
+}
+```
+
+```{r}
+temp <- head %>%
+  pre_process()
+```
+
+

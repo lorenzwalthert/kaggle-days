@@ -1,0 +1,209 @@
+---
+title: "Untitled"
+author: "Lorenz Walthert"
+date: "5/18/2018"
+output: html_document
+---
+
+Antonio gulli, Director Eng Cloud % Site Lead Warsaw.
+
+
+Google is responsible for about 25% of internet traffic.
+
+Free GPUs from Google Tool: Collaboratory.
+Kubernetes
+
+
+# Deep Learning: When and how?
+
+Mikhail Trofimov (Open Data science).
+
+Use tree-based for tabular data, use neural net in ensemble.
+
+Loss hacking: 
+
+* reweight rare cases
+* insert priors by reweighting some objects
+
+
+E.g. picutre: weight pixls at the border more than inside
+Carvana Challenge BCE with DICE loss
+
+Or average: use different losses -> ensemble
+
+Transfer Learning:
+
+* ImageNet
+* Faces (LFW, FaceBet()
+* Places (places365-vnn
+* Sounds AudioSet dataset (DeepSpeech)
+* Words/Sentences (wik)
+
+Pretrain helps improfing your models if you:
+
+* have few data
+* transfer from a similar domain.
+
+
+## Data Augmentation
+
+Images: 
+
+* rotations
+* crops
+* zomm 
+* de-coloring
+* lighting
+* noise 
+
+for speech
+
+* noises
+* volume level
+* blend with other sounds
+* speed
+* pitch
+-> combine
+
+
+## Video challence
+
+Split training data in 2 parts, get three datasets for training, not just one.
+
+tst-time augmentations.
+
+?VGG16 + inceptionv3; http://www.robots.ox.ac.uk/~vgg/software/via/
+
+
+Predict orientation of houses: 
+north or east oriented: use training data twice, once on original rotation, 
+second on rotated by 90 degrees and also change label.
+
+## summary
+
+* ib tabular data, use gbdt, 
+* use deep learning to train whole achritecture, once you trained 
+  cnn and embeddings jointly, you can replace the last regression 
+  layer using GBDT.
+  
+* fine tuning. take a pretrained network and update all weights
+* transfer learning: Only retrain last few layers.
+
+
+?mean encoding
+?fasttesx
+?use / ?usm
+https://www.tensorflow.org/hub/modules/google/universal-sentence-encoder/1
+
+# Segementation
+
+ods.ai: portal to discuss kaggle competitions
+segmentic segmentation: detect single instances in a picture.
+instance segmentation: can also detect multiple instances of the same type.
+spacenet competitions.
+
+compared to image classification: high-dimensional, every pixel has a value, 
+you don't need so many 
+
+https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/
+
+sampling: crop from the main image, select more crops from difficult to 
+predict areas. + Rotate imgages to increase the size.
+
+Why not rotating:
+
+* roads and houses are aligned in some direction (at least in the US)
+* shadows
+
+depening on how much generalisation is needed, you rotate (or not).
+
+Cropping different sizes can also be useful if they roughly look the 
+same. For example, rivers often have the same structure.
+
+In segmentation, pixel accuracy is irrelevant.
+
+tipp: make small objects large to learn them well and (back)transform.
+
+* pretraining is a must for image classification.
+* for segmentation, it's not that clear.
+
+
+# Strategy to reach the top of the Kaggle learderboard (Daniel)
+
+Tipps applicable for time-series competitions (taken from the restaurant visitor
+competition).
+
+Note that if you use time-series data, we may have a different distribution, i.e. 
+in the test data set of the visitor competition, there were many holidays).
+
+Use one model for every test, so you get 39 models, one for every day. But 
+you have multiple restaurants for every day.
+
+Always retrain the model on the whole data set once you have figured out 
+with cross-validation which model you wan to use.
+
+Also, for gradient boosting, it's not a problem to use p > n. I.e. for each of 
+the 39 models, we have a lot of other variables 
+
+# MDP Depth collection.
+
+Depth collector company wants to get money from depthors.
+
+states: 
+
+* # phone calls 
+* $ depth autstanding
+* # days since arrival
+
+for each state, what is the value of the state and what are the transition 
+probabilities to go to the paid state.
+
+There are actually many more variables such as amount already paied, 
+average income area. 
+
+What do we do? We use xgb to translate. Some variables as predictors, 
+outcome: whether person paid at end or not.
+-> supervised learning problem. What is the probability that someone pays in 
+a certain state. This gives the value of the state.
+
+Need to do final field experiment to verify.
+
+# How to build a career with kaggle
+
+* first competition: #45 on public, #500+ on private -> overfitting.
+* Sberbank russian housing market.
+* use internal cross-validation, try not to rely on public leader board score
+  as much as possible.
+* work in teams.
+* xgboost cannot find a trend. Remove the trend.
+* see solution posted on kagle.
+
+What are the biggest challenges you face when trying to convinvce business 
+people to invest in data science projects and how do you overcome this?
+
+* Challenges: Regulations, we need interpretable models. 
+* How to convince: Money. Show that a model pays off compared to status quo
+  solution.
+  
+## lessons learned from housing prices
+
+* fit time trend with GAM or something similar and then focus on predict the 
+  residual.
+* Don't use (maybe anyways?) macro economic factors to predict real estate 
+  prices. 
+* use a simple model to predict prices and use that as identifiers of outliers, 
+  then, fit real model.
+* Try deep learning, I heared from people at banks that were getting better 
+  results with deep learning than with gradient boosting.
+
+
+# Future of kaggle
+
+Give back community back as much as possible, that is why we introduced 
+kernels, data sets.
+
+
+
+# Competition
+
+NLP problem. want to predict the number of upvotes.
