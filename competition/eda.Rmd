@@ -8,7 +8,7 @@ output: html_document
 ```{r}
 knitr::opts_knit$set(cache = TRUE)
 library(tidyverse)
-raw <- read_tsv(here::here("competition/01-data/train.csv"))
+raw <- read_tsv(here::here("competition/01-data/test.csv"))
 if (!("answer_score" %in% names(raw))) {
   raw$answer_score <- NA
 }
@@ -74,6 +74,12 @@ time_to_answer <- function(data)  {
 
 }
 
+answer_count <- function(data) {
+  data %>%
+    group_by(question_id) %>%
+    mutate(answer_count = n())
+}
+
 time_to_next_answer <- function(data) {
   data %>%
     group_by(question_id) %>%
@@ -118,7 +124,7 @@ library(magrittr)
 train %<>%
   pre_process()
 
-fst::write_fst(train, here::here("competition/01-data/cleaned"))
+fst::write_fst(train, here::here("competition/01-data/cleaned-test"))
 ```
 
 
@@ -216,3 +222,4 @@ train %>%
 ```
 
 Feature engineering is key
+optimal max-depth in bbosting is unaffected by sample size, but by number of features.
