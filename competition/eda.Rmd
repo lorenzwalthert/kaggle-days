@@ -6,10 +6,18 @@ output: html_document
 ---
 
 ```{r}
+knitr::opts_knit$set(cache = TRUE)
 library(tidyverse)
-train <- read_tsv(here::here("competition/01-data/train.csv"))
+raw <- read_tsv(here::here("competition/01-data/train.csv"))
+if (!("answer_score" %in% names(raw))) {
+  raw$answer_score <- NA
+}
+train <- raw
 head <- train %>% head()
 ```
+
+
+# Pre-processing
 
 ```{r}
 library(lubridate)
@@ -22,6 +30,14 @@ remove_cols <- function(data) {
   data %>%
     select(-.data$question_utc, -.data$answer_utc)
 }
+
+transform_response <- function(data) {
+  data %>%
+    mutate(
+      log_answer_score = log(answer_score), 
+      log10_answer_score = log10(answer_score) 
+    )
+}
 convert_time <- function(data) {
     data %>%
     mutate(
@@ -33,8 +49,8 @@ convert_time <- function(data) {
       answer_day = day(answer_dt),
       question_hour = hour(question_dt),
       answer_hour = hour(answer_dt),
-      weekday_question = weekdays.Date(question_dt),
-      weekday_answer = weekdays.Date(answer_dt)
+      question_weekday = weekdays.Date(question_dt),
+      answer_weekday = weekdays.Date(answer_dt)
     )
 }
 
@@ -47,12 +63,19 @@ reorder_cols <- function(data) {
   data[, unique(c(important, question, answer, rest))]
 }
 
+txt_from_stats <- function(data) {
+  data %>%
+    mutate(answer_nchar = nchar(answer_text))
+}
+  
+
 pre_process <- function(data) {
   data %>%
     convert_time() %>%
+    transform_response() %>%
+    txt_from_stats() %>%
     reorder_cols() %>%
     remove_cols()
-
 }
 ```
 
@@ -67,9 +90,101 @@ Ok, it works :-). Lets pre-process the whole dataset.
 library(magrittr)
 train %<>%
   pre_process()
+
+fst::write_fst(train, here::here("competition/01-data/cleaned-test"))
 ```
 
+
+# Exploratory Data Analysis
+
+The data set contains `r nrow(train)` obeservations. That's not very comfortable
+to work with. Let's sub-sample that an work with the reduced data set.
+
 ```{r}
-ggplot()
+small_train <- train %>%
+  select(-contains("text")) %>%
+  sample_frac(0.1)
+```
+
+
+Let's have a look at some descriptive plots. 
+
+```{r}
+small_train %>%
+  ggplot(aes(x = answer_score)) +
+  geom_histogram() + 
+  scale_x_continuous(trans = "log10", breaks = c(1:5, 10, 100, 1000))
+```
+
+We've also created transformations of it:
+
+```{r}
+small_train %>%
+  ggplot(aes(x = log_answer_score)) +
+  geom_histogram()
+```
+
+
+```{r}
+full <- small_train %>%
+  ggplot(aes(x = question_score, y = answer_score)) + 
+  geom_point() + 
+  stat_smooth()
+```
+
+Most questions and answers arbe in the 10k / 10k space. Let's have a closer look
+
+```{r}
+ten_k <- small_train %>%
+  filter(question_score < 10000, answer_score < 10000) %>%
+  sample_frac(0.1) %>%
+  ggplot(aes(x = question_score, y = answer_score)) + 
+  geom_point() + 
+  stat_smooth()
+
+```
+
+Also here, there seems not really a direct relationship between the variables.
+```{r}
+gridExtra::grid.arrange(full, ten_k)
+```
+
+Next, we check how date and time is related to upvotes.
+```{r}
+uncut <- small_train %>%
+  ggplot(aes(x = factor(answer_weekday), y = answer_score)) + 
+  geom_violin() + 
+  scale_y_continuous(trans = "log10", name = "Answer Score") + 
+  scale_x_discrete(name = "Weekday")
+
+cut <- small_train %>%
+  filter(answer_score <10) %>%
+  ggplot(aes(x = factor(answer_weekday), y = answer_score)) + 
+  geom_violin() + 
+  scale_y_continuous(trans = "log10", name = "Answer Score") + 
+  scale_x_discrete(name = "Weekday")
+gridExtra::grid.arrange(uncut, cut)
+```
+
+Not much interesting here. Let's check whether time of answer matters. 
+
+```{r}
+small_train %>%
+  ggplot(aes(x = answer_hour, y = log(answer_score))) + geom_jitter() + 
+  scale_y_continuous(trans = "log10") + 
+  geom_smooth()
+```
+```{r}
+train %>%
+  mutate(question_score_zero = (question_score == 1L)) %>%
+  group_by(question_score_zero) %>%
+  count()
+
+
+train %>%
+  mutate(question_score_one = (question_score == 1L)) %>%
+  group_by(subreddit) %>%
+  summarise(n = n(), is_one = mean(question_score_one)) %>%
+  arrange(desc(is_one))
 ```
 
