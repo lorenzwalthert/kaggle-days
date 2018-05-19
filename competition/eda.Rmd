@@ -5,6 +5,11 @@ date: "5/19/2018"
 output: html_document
 ---
 
+Note that you need to change the input and output file of this notebook
+to create obth test and train data set, which will be used in the `./xgb.R` 
+file. Change `test.csv` to `train.csv` and `collected-test` in the 
+`fst::write_fst()` to `collected`. 
+
 ```{r}
 knitr::opts_knit$set(cache = TRUE)
 library(tidyverse)
