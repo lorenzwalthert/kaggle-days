@@ -68,12 +68,39 @@ txt_from_stats <- function(data) {
     mutate(answer_nchar = nchar(answer_text))
 }
   
+time_to_answer <- function(data)  {
+  data %>%
+    mutate(time_to_answer = as.numeric(question_dt - answer_dt))
+
+}
+
+time_to_next_answer <- function(data) {
+  data %>%
+    group_by(question_id) %>%
+    mutate(
+      time_to_next_anser = lag(answer_dt, default = 0),
+      time_to_previous_anser = lead(answer_dt, default = NA)
+    ) %>%
+    ungroup()
+}
+
+rank_in_answer <- function(data) {
+  data %>%
+    group_by(question_id) %>%
+    mutate(nth_answer = 1:n()) %>%
+    ungroup()
+}
+
 
 pre_process <- function(data) {
   data %>%
     convert_time() %>%
+    arrange(question_dt, answer_dt) %>%
     transform_response() %>%
     txt_from_stats() %>%
+    time_to_answer() %>% 
+    time_to_next_answer() %>%
+    rank_in_answer %>%
     reorder_cols() %>%
     remove_cols()
 }
@@ -91,7 +118,7 @@ library(magrittr)
 train %<>%
   pre_process()
 
-fst::write_fst(train, here::here("competition/01-data/cleaned-test"))
+fst::write_fst(train, here::here("competition/01-data/cleaned"))
 ```
 
 
@@ -188,3 +215,4 @@ train %>%
   arrange(desc(is_one))
 ```
 
+Feature engineering is key
